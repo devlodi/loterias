@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conferência Lotofácil</title>
+<style>
+    #loadingDiv {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(147, 112, 219, 0.8);  /* Cor de fundo roxa */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        z-index: 1000;
+    }
+
+    .bouncingBall {
+        width: 30px;
+        height: 30px;
+        background-color: #ffa32b;  /* Cor de fundo roxa */
+        border-radius: 50%;
+        display: inline-block;
+        animation: bounce 3s infinite cubic-bezier(0.5, 0.05, 0.8, 0.4);
+    }
+
+    @keyframes bounce {
+        0%, 100% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(-50px);
+        }
+    }
+
+    body {
+        text-align: center;
+        font-family: Arial, sans-serif;
+        padding: 5px;
+        background-color: #e6e6fa;  /* Cor de fundo roxa clara */
+    }
+    
+    #searchSection {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    #searchSection input,
+    #searchSection button {
+        margin-bottom: 10px;
+    }
+
+    #table {
+        display: inline-table;
+        width: 100%; /* Alterado para 100% */
+        border-collapse: separate;
+        border-spacing: 0;
+        margin-bottom: 20px;
+        background-color: #f8f8ff;  /* Cor de fundo roxa muito clara */
+        box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+        overflow: auto; /* Adicionado para rolagem horizontal em telas pequenas */
+        border-radius: 12px;
+    }
+
+    #table th, #table td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid #d8bfd8;  /* Cor de borda roxa clara */
+    }
+
+   #table th {
+   z-index: 5;
+    position: sticky;
+    top: 0;
+    border-radius: 12px;
+    background-color: #ffa32b;  /* Cor de fundo roxa */
+    color: white;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+
+    #table tr:hover {
+        background-color: #e6e6fa;  /* Cor de fundo roxa clara no hover */
+    }
+
+    #table tr:nth-child(even) {
+        background-color: #f5f5f5;  /* Cor de fundo roxa muito clara */
+    }
+
+    .bola {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: inline-block;
+        text-align: center;
+        line-height: 50px;
+        font-size: 20px;
+        background-color: #ffa32b;  /* Cor de fundo roxa */
+        color: white;
+        margin: 5px;
+    }
+
+    @media (min-width: 768px) {
+        #searchSection {
+            flex-direction: row;
+        }
+
+        #searchSection input,
+        #searchSection button {
+            margin-bottom: 0;  /* Remove o espaço na versão desktop */
+            margin-right: 10px;  /* Adiciona algum espaço à direita */
+        }
+
+        #searchSection button {
+            margin-right: 0;  /* Remove o espaço à direita do último botão */
+        }
+    }
+    
+    @media (max-width: 768px) {
+        #table {
+            width:30%;
+            margin-right: 15px;
+        }
+    }
+
+    #table th[role="button"] {
+        cursor: pointer;
+    }
+    
+
+
+/* Estilo para as células da tabela */
+#table td {
+    width: 50px;
+    height: 50px;
+    text-align: center;
+    vertical-align: middle;
+    position: relative;
+}
+
+/* Estilo para as bolinhas */
+.bolinha {
+ z-index: 2;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Estilo para as bolinhas maiores (para os números ímpares) */
+.bolinha-maior {
+    width: 55px;
+    height: 55px;
+    z-index: 1;
+}
+
+#searchSection button {
+    margin: 5px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    background-color: #ffa32b; /* Cor de fundo roxa */
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#searchSection button:hover {
+    background-color: #9932CC; /* Cor de fundo roxa clara ao passar o mouse */
+}
+
+.modal {
+z-index: 1000;  /* Adicione esta linha */
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: #f8f8ff;
+    padding: 20px;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.close-button {
+    position: absolute;
+    right: 20px;
+    top: 10px;
+    font-size: 30px;
+    cursor: pointer;
+}
+
+p {
+    text-align: left;
+}
+
+#searchInput {
+    width: 200px;
+    height: 40px;
+    font-size: 18px;  /* ou qualquer outro valor que desejar */
+}
+
+#loading {
+    z-index: 9999;  
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.spinner {
+    border: 16px solid rgba(255, 255, 255, 0.3);
+    border-top: 16px solid #3498db;
+    border-radius: 50%;
+    width: 120px;
+    height: 120px;
+    animation: spin 2s linear infinite, bounceY 2s infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes bounceY {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+}
+
+.loading-text {
+    margin-top: 10px;
+    font-size: 16px;
+    color: #fff;
+    text-shadow: 0 0 10px #3498db, 0 0 20px #3498db, 0 0 30px #3498db, 0 0 40px #3498db;
+    animation: textGlow 1.5s ease-in-out infinite;
+}
+
+@keyframes textGlow {
+    0%, 100% { text-shadow: 0 0 10px #3498db, 0 0 20px #3498db, 0 0 30px #3498db, 0 0 40px #3498db; }
+    50% { text-shadow: 0 0 20px #3498db, 0 0 30px #3498db, 0 0 40px #3498db, 0 0 50px #3498db, 0 0 60px #3498db; }
+}
+
+</style>
+<style>
+    .legend {
+        padding: 10px;
+        border: 1px solid #ccc;
+        margin-bottom: 10px;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 5px;
+    }
+
+    .legend-color {
+        width: 20px;
+        height: 20px;
+        margin-right: 10px;
+        border: 1px solid #ccc;  /* borda opcional para ajudar a distinguir cores claras do fundo */
+    }
+</style>
+
+
+</head>
+<body>
+<div id="loadingDiv">
+    <span class="loader"></span>
+    <p>Aguarde, os resultados estão sendo carregados...</p>
+</div>
+
+<div id="loading" class="loading">
+    <div class="spinner"></div>
+    <div class="loading-text">Marcando...</div>  <!-- Texto de carregamento adicionado aqui -->
+</div>
+
+
+
+<div id="modal" class="modal">
+    <div class="modal-content">
+       <span class="close-button" onclick="closeModal()">&times;</span>
+        <p>O que você quer limpar?</p>
+        <button onclick="clearAll()">Limpar Tudo</button>
+        <button onclick="clearEvenNumbers()">Limpar Pares</button>
+        <button onclick="clearOddNumbers()">Limpar Ímpares</button>
+        <button onclick="clearSequences()">Limpar Sequências por linha</button>
+        <button onclick="clearVerticalSequences()">Limpar Sequências Verticais</button>
+    </div>
+</div>
+
+<div id="legend" class="legend">
+    <h3 style="text-align: left;">Legenda:</h3>
+    <div class="legend-item">
+        <span class="legend-color" style="background-color: yellow;"></span> Números Ímpares
+    </div>
+    <div class="legend-item">
+        <span class="legend-color" style="background-color: plum;"></span> Números Pares
+    </div>
+    <div class="legend-item">
+        <span class="legend-color" style="background-color: pink;"></span> Sequências Verticais (1ª Cor)
+    </div>
+    <div class="legend-item">
+        <span class="legend-color" style="background-color: limegreen;"></span> Sequências Verticais (2ª Cor)
+    </div>
+    <div class="legend-item">
+        <span class="legend-color" style="background-color: green;"></span> Sequências por Linha (Cor 1)
+    </div>
+    <div class="legend-item">
+        <span class="legend-color" style="background-color: blue;"></span> Sequências por Linha (Cor 2)
+    </div>
+    <div class="legend-item">
+        <span class="legend-color" style="background-color: orange;"></span> Sequências por Linha (Cor 3)
+    </div>
+    <div class="legend-item">
+        <span class="legend-color" style="background-color: red;"></span> Sequências por Linha (Cor 4)
+    </div>
+</div>
+<p class="texto-esquerda">Digite o número do concurso abaixo para consulta dos resultados da lotofacil</p>
+<div id="searchSection">
+    <input type="number" id="searchInput" placeholder="Número do Concurso">
+    <button onclick="searchTable()">Buscar</button>
+    <button onclick="showAllResults()">Mostrar todos os resultados</button>
+            <button onclick="highlightOddNumbers()">Destacar Números Ímpares</button> 
+            <button onclick="highlightEvenNumbers()">Destacar Números Pares</button>
+            <button onclick="highlightSequences()">Destacar Sequências por linha</button>
+            <button onclick="highlightVerticalSequences()">Destacar Sequências por coluna</button>
+
+<button onclick="clearHighlights()">Limpar Marcações</button>
+
+
+
+
+</div>
+
+<div id="bolaContainer">
+    <div id="bola1" class="bola"></div>
+    <div id="bola2" class="bola"></div>
+    <div id="bola3" class="bola"></div>
+    <div id="bola4" class="bola"></div>
+    <div id="bola5" class="bola"></div>
+    <div id="bola6" class="bola"></div>
+    <div id="bola7" class="bola"></div>
+    <div id="bola8" class="bola"></div>
+    <div id="bola9" class="bola"></div>
+    <div id="bola10" class="bola"></div>
+    <div id="bola11" class="bola"></div>
+    <div id="bola12" class="bola"></div>
+    <div id="bola13" class="bola"></div>
+    <div id="bola14" class="bola"></div>
+    <div id="bola15" class="bola"></div>
+    <div id="bola16" class="bola"></div>
+    <div id="bola17" class="bola"></div>
+    <div id="bola18" class="bola"></div>
+    <div id="bola19" class="bola"></div>
+    <div id="bola20" class="bola"></div>
+</div>
+
+    <table id="table">
+    <thead>
+        <tr>
+    <th role="button">Concurso ⇓</th>
+    <th>Data Sorteio</th>
+   <th>Bola1</th>
+<th>Bola2</th>
+<th>Bola3</th>
+<th>Bola4</th>
+<th>Bola5</th>
+<th>Bola6</th>
+<th>Bola7</th>
+<th>Bola8</th>
+<th>Bola9</th>
+<th>Bola10</th>
+<th>Bola11</th>
+<th>Bola12</th>
+<th>Bola13</th>
+<th>Bola14</th>
+<th>Bola15</th>
+<th>Bola16</th>
+<th>Bola17</th>
+<th>Bola18</th>
+<th>Bola19</th>
+<th>Bola20</th>
+
+</tr>
+
+    </thead>
+    <tbody>
+        <!-- As linhas de dados serão inseridas aqui pelo JavaScript -->
+    </tbody>
+</table>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+    <script>
+
+function showAllResults() {
+    const table = document.getElementById("table");
+    const rows = table.getElementsByTagName("tr");
+    
+    // Limpa as bolinhas
+    for (let i = 1; i <= 15; i++) {  // Atualizado para 15
+        document.getElementById('bola' + i).textContent = '';
+    }
+
+    // Mostra todas as linhas da tabela (exceto o cabeçalho)
+    for (let i = 1; i < rows.length; i++) {
+        rows[i].style.display = "";
+    }
+}
+
+let sortAscending = true;  // Variável global para rastrear a direção da ordenação
+
+function sortTable() {
+    const table = document.getElementById('table');
+    const rows = Array.from(table.rows).slice(1);  // Ignora o cabeçalho
+    sortAscending = !sortAscending;  // Inverte a direção da ordenação a cada clique
+
+    // Ordena as linhas baseado na primeira célula (célula do concurso)
+    rows.sort((rowA, rowB) => {
+        const a = parseInt(rowA.cells[0].textContent, 10);
+        const b = parseInt(rowB.cells[0].textContent, 10);
+        return sortAscending ? a - b : b - a;
+    });
+
+    // Remove as linhas existentes
+    for (let i = table.rows.length - 1; i > 0; i--) {
+        table.deleteRow(i);
+    }
+
+    // Adiciona as linhas ordenadas de volta à tabela
+    for (const row of rows) {
+        table.appendChild(row);
+    }
+}
+
+
+function searchTable() {
+    const input = document.getElementById("searchInput").value.toLowerCase();
+    const table = document.getElementById("table");
+    const rows = table.getElementsByTagName("tr");
+    
+    // Limpe as bolinhas antes de começar a busca
+    for (let i = 1; i <= 20; i++) {  // Atualizado para 15
+        document.getElementById('bola' + i).textContent = '';
+    }
+
+    for (let i = 1; i < rows.length; i++) {  // Skip header row (i=0)
+        const cells = rows[i].getElementsByTagName("td");
+        if (cells.length > 0) {
+            const cellValue = cells[0].textContent || cells[0].innerText;  // Obtenha o número do concurso da primeira célula
+            if (cellValue.toLowerCase() === input) {  // Compare o valor exato, não uma substring
+                rows[i].style.display = "";  // Mostre a linha se a correspondência for encontrada
+                // Preencha as bolinhas com os números do concurso
+                for (let j = 1; j <= 20; j++) {  // Atualizado para 15
+                    document.getElementById('bola' + j).textContent = cells[j+1].textContent;
+                }
+            } else {
+                rows[i].style.display = "none";  // Esconda a linha se não houver correspondência
+            }
+        }
+    }
+}
+
+        
+      const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRcyMf98BS3e1U9nPkWEfp0giyhKqOKMVVUVgyZP2N7wWvkfUaAVtIFwJ5eAUXhTCQ6ciTzks7tOCy6/pub?output=csv';
+
+    fetch(CSV_URL)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok ' + response.statusText);
+            }
+            return response.text();
+        })
+        .then(data => {
+            const rows = data.split('\n').slice(1);  // Divide o CSV em linhas e remove a linha do cabeçalho
+            const tableData = rows.map(row => row.split(','));  // Divide cada linha em colunas
+            renderTable(tableData);
+
+            // Esconda a div de carregamento quando os dados forem carregados
+            document.getElementById('loadingDiv').style.display = 'none';
+        })
+        .catch(error => {
+            console.error('Houve um problema com a operação fetch: ', error);
+
+            // Esconda a div de carregamento em caso de erro
+            document.getElementById('loadingDiv').style.display = 'none';
+        });
+
+        
+        
+        
+
+
+function renderTable(data) {
+    const table = document.getElementById('table');
+    const input = document.getElementById("searchInput").value.toLowerCase();
+    
+    data.sort((a, b) => b[0] - a[0]);
+
+    data.forEach(row => {
+        if(row.length === 22) {
+            const tr = document.createElement('tr');
+            Object.values(row).forEach((cell, index) => {
+                const td = document.createElement('td');
+                td.style.textAlign = 'center';
+                if (index >= 2) {
+                    const div = document.createElement('div');
+                    div.className = 'bolinha';
+                    div.textContent = String(cell).padStart(2, '0');
+                    td.appendChild(div);
+                } else {
+                    td.textContent = cell;
+                }
+                tr.appendChild(td);
+            });
+
+            if (input && String(row[0]).toLowerCase().indexOf(input) === -1) {
+                tr.style.display = 'none';
+            }
+            table.appendChild(tr);
+        }
+    });
+    
+    document.getElementById('table').tHead.rows[0].cells[0].addEventListener('click', sortTable);
+}
+
+
+
+function highlightOddNumbers() {
+    const loadingElement = document.getElementById('loading');
+    loadingElement.style.display = 'flex';
+    loadingElement.style.zIndex = '1000';  // Certifica que o elemento de carregamento está na frente de tudo
+
+    // Utilize setTimeout para permitir que a tela seja atualizada antes de continuar
+    setTimeout(() => {
+        processTableRows();
+        loadingElement.style.display = 'none';
+    }, 0);
+}
+
+function processTableRows() {
+    const table = document.getElementById('table');
+    const rows = table.getElementsByTagName('tr');
+
+    for (let i = 1; i < rows.length; i++) {
+        const cells = rows[i].getElementsByTagName('td');
+        highlightOddCells(cells);
+    }
+}
+
+function highlightOddCells(cells) {
+    for (let j = 2; j < cells.length; j++) {
+        const cellValue = parseInt(cells[j].textContent, 10);
+        if (!isNaN(cellValue) && cellValue % 2 === 1) {
+            let div = cells[j].querySelector('.bolinha-maior');
+            if (!div) {
+                div = document.createElement('div');
+                div.className = 'bolinha bolinha-maior';
+                cells[j].appendChild(div);  // Adiciona a bolinha amarela à célula
+            }
+            div.style.backgroundColor = 'yellow';
+        }
+    }
+}
+
+
+function highlightEvenNumbers() {
+    document.getElementById('loading').style.display = 'flex';
+
+    // Adia a execução do código de marcação para permitir que a interface do usuário seja atualizada
+    setTimeout(() => {
+        const table = document.getElementById('table');
+        const rows = table.getElementsByTagName('tr');
+
+        for (let i = 1; i < rows.length; i++) {
+            const cells = rows[i].getElementsByTagName('td');
+            for (let j = 2; j < cells.length; j++) {
+                const cellValue = parseInt(cells[j].textContent, 10);
+                if (!isNaN(cellValue) && cellValue % 2 === 0) {  // Verifica se o número é par
+                    let div = cells[j].querySelector('.bolinha-maior');
+                    if (!div) {
+                        div = document.createElement('div');
+                        div.className = 'bolinha bolinha-maior';
+                        cells[j].appendChild(div);  // Adiciona a bolinha roxa clara à célula
+                    }
+                    div.style.backgroundColor = 'plum';  // Muda a cor para roxo claro (plum)
+                }
+            }
+        }
+        document.getElementById('loading').style.display = 'none';  // Esconde o indicador de carregamento
+    }, 0);  // O tempo de atraso é 0, mas ainda assim permite que a interface do usuário seja atualizada
+}
+
+
+function highlightVerticalSequences() {
+    // Exibe o elemento de carregamento
+    document.getElementById('loading').style.display = 'block';  
+
+    setTimeout(() => {
+        const table = document.getElementById('table');
+        const rows = table.getElementsByTagName('tr');
+        const numColumns = rows[0].cells.length;
+
+        for (let colIndex = 2; colIndex < numColumns; colIndex++) {  // Começa em 2 para ignorar as colunas 'Concurso' e 'Data Sorteio'
+            let currentSequenceValue = null;
+            let sequenceStartRowIndex = null;
+            let sequenceLength = 0;
+            let lastColorUsed = 'pink';
+
+            for (let rowIndex = 1; rowIndex < rows.length; rowIndex++) {
+                const currentCell = rows[rowIndex].cells[colIndex];
+                const currentValue = currentCell.textContent;
+
+                if (currentValue === currentSequenceValue) {
+                    sequenceLength++;
+                    if (rowIndex === rows.length - 1 && sequenceLength >= 2) {  // Checagem final para a última linha
+                        highlightCells(sequenceStartRowIndex, rowIndex, colIndex, lastColorUsed);
+                    }
+                } else {
+                    if (sequenceLength >= 2) {
+                        highlightCells(sequenceStartRowIndex, rowIndex - 1, colIndex, lastColorUsed);
+                        lastColorUsed = lastColorUsed === 'limegreen' ? 'pink' : 'limegreen';  // Alterna a cor para a próxima sequência
+                    }
+                    currentSequenceValue = currentValue;
+                    sequenceStartRowIndex = rowIndex;
+                    sequenceLength = 1;
+                }
+            }
+        }
+
+        // Esconde o elemento de carregamento
+        document.getElementById('loading').style.display = 'none';  
+    }, 0);
+}
+
+function highlightCells(startRow, endRow, colIndex, color) {
+    const table = document.getElementById('table');
+    for (let rowIndex = startRow; rowIndex <= endRow; rowIndex++) {
+        const cell = table.getElementsByTagName('tr')[rowIndex].cells[colIndex];
+        cell.style.backgroundColor = color;
+        cell.style.borderRadius = '35px';  // Adiciona radius
+    }
+}
+
+highlightVerticalSequences();
+
+
+
+function highlightSequences() {
+    document.getElementById('loading').style.display = 'flex';
+
+    // Utilize setTimeout para permitir que a tela seja atualizada antes de continuar
+    setTimeout(() => {
+        processRows();
+        document.getElementById('loading').style.display = 'none';
+    }, 0);
+}
+
+function processRows() {
+    const table = document.getElementById('table');
+    const rows = table.getElementsByTagName('tr');
+    const colors = ['green', 'blue', 'orange', 'red'];
+    let colorIndex = 0;
+
+    for (let i = 1; i < rows.length; i++) {
+        const cells = rows[i].getElementsByTagName('td');
+        processCells(cells, colors, colorIndex);
+    }
+}
+
+function processCells(cells, colors, colorIndex) {
+    let sequenceCount = 1;
+    let newSequence = true;
+
+    for (let j = 3; j < cells.length; j++) {
+        const currentNumber = parseInt(cells[j].textContent, 10);
+        const previousNumber = parseInt(cells[j - 1].textContent, 10);
+
+        if (currentNumber === previousNumber + 1) {
+            sequenceCount++;
+
+            if (newSequence) {
+                colorIndex = (colorIndex + 1) % colors.length;
+                newSequence = false;
+            }
+
+            if (sequenceCount >= 3) {
+                let currentDiv = cells[j].querySelector('.bolinha');
+                let previousDiv = cells[j - 1].querySelector('.bolinha');
+                
+                if (!currentDiv) {
+                    currentDiv = document.createElement('div');
+                    currentDiv.className = 'bolinha';
+                    cells[j].textContent = '';  // Limpa o texto da célula
+                    cells[j].appendChild(currentDiv);
+                }
+                
+                if (!previousDiv) {
+                    previousDiv = document.createElement('div');
+                    previousDiv.className = 'bolinha';
+                    cells[j - 1].textContent = '';  // Limpa o texto da célula
+                    cells[j - 1].appendChild(previousDiv);
+                }
+
+                currentDiv.style.backgroundColor = colors[colorIndex];
+                previousDiv.style.backgroundColor = colors[colorIndex];
+                
+                if (sequenceCount === 3) {
+                    let firstDiv = cells[j - 2].querySelector('.bolinha');
+                    if (!firstDiv) {
+                        firstDiv = document.createElement('div');
+                        firstDiv.className = 'bolinha';
+                        cells[j - 2].textContent = '';  // Limpa o texto da célula
+                        cells[j - 2].appendChild(firstDiv);
+                    }
+                    firstDiv.style.backgroundColor = colors[colorIndex];
+                }
+            }
+        } else {
+            sequenceCount = 1;
+            newSequence = true;
+        }
+    }
+}
+
+
+
+function toggleModal(display) {
+    const modal = document.getElementById('modal');
+    modal.style.display = display ? 'flex' : 'none';
+}
+
+function clearHighlights() {
+    toggleModal(true);
+}
+
+function closeModal() {
+    toggleModal(false);
+}
+
+function iterateCells(callback) {
+    const table = document.getElementById('table');
+    const rows = table.getElementsByTagName('tr');
+
+    for (let i = 1; i < rows.length; i++) {
+        const cells = rows[i].getElementsByTagName('td');
+        for (let j = 2; j < cells.length; j++) {
+            callback(cells[j]);
+        }
+    }
+    closeModal();
+}
+
+function clearAll() {
+    iterateCells(cell => {
+        // Limpar divs dentro das células
+        let divs = cell.querySelectorAll('.bolinha, .bolinha-maior');
+        divs.forEach(div => {
+            div.style.backgroundColor = '';
+        });
+        
+        // Limpar estilos aplicados diretamente nas células
+        cell.style.backgroundColor = '';
+        cell.style.borderRadius = '';  // Se outras propriedades de estilo foram aplicadas, inclua-as aqui
+    });
+}
+
+
+function clearEvenNumbers() {
+    iterateCells(cell => {
+        const cellValue = parseInt(cell.textContent, 10);
+        if (!isNaN(cellValue) && cellValue % 2 === 0) {
+            let div = cell.querySelector('.bolinha-maior');
+            if (div) {
+                div.style.backgroundColor = '';
+            }
+        }
+    });
+}
+
+function clearOddNumbers() {
+    iterateCells(cell => {
+        const cellValue = parseInt(cell.textContent, 10);
+        if (!isNaN(cellValue) && cellValue % 2 === 1) {
+            let div = cell.querySelector('.bolinha-maior');
+            if (div) {
+                div.style.backgroundColor = '';
+            }
+        }
+    });
+}
+
+function clearSequences() {
+    iterateCells(cell => {
+        let div = cell.querySelector('.bolinha');
+        if (div && (div.style.backgroundColor === 'green' ||
+                    div.style.backgroundColor === 'blue' ||
+                    div.style.backgroundColor === 'orange' ||
+                    div.style.backgroundColor === 'red')) {
+            div.style.backgroundColor = '';
+        }
+    });
+}
+
+function clearVerticalSequences() {
+    iterateCells(cell => {
+        if (cell.style.backgroundColor === 'pink' || cell.style.backgroundColor === 'limegreen') {
+            cell.style.backgroundColor = '';
+            cell.style.borderRadius = '';  // Se necessário, também limpe o borderRadius
+        }
+    });
+}
+
+
+    </script>
+</body>
+</html>
